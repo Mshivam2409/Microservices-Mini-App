@@ -6,7 +6,23 @@ const app = express();
 
 app.use(bodyParser.json());
 
-var posts: { [id: string]: string } = {};
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
+
+  next();
+});
+
+interface post {
+  id: string;
+  title: string;
+}
+
+var posts: Array<post> = [];
 
 app.get("/posts", (req, res, next) => {
   res.status(200).json(posts);
@@ -15,7 +31,7 @@ app.get("/posts", (req, res, next) => {
 app.post("/posts", (req, res, next) => {
   const title: string = req.body.title;
   const id: string = randomBytes(16).toString("hex");
-  posts[id] = title;
+  posts.push({ id: id, title: title });
   res.status(201).json({ message: "Post Added" });
 });
 
