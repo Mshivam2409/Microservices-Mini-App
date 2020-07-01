@@ -1,18 +1,33 @@
 import express from "express";
 import bodyParser from "body-parser";
 import { randomBytes } from "crypto";
+import { nextTick } from "process";
 
 const app = express();
 
 app.use(bodyParser.json());
 
-interface post {
+interface comment {
   id: string;
-  title: string;
+  content: string;
 }
 
-var comments: { [id: string]: post } = {};
+var commentsByPostId: { [PostId: string]: Array<comment> } = {};
 
-app.listen(5000, () => {
-  console.log("Posts service listening on port", 5000);
+app.get("/post/:id/comments", (req, res, next) => {
+  res.status(200).json(commentsByPostId[req.params.id]);
+});
+
+app.post("/post/:id/comments", (req, res, next) => {
+  const postID: string = req.params.id;
+  const commentID = randomBytes(16).toString("hex");
+  let newComment: comment;
+  newComment.content = req.body.content;
+  newComment.id = commentID;
+  commentsByPostId[postID].push(newComment);
+  res.status(200).json(commentsByPostId[req.params.id]);
+});
+
+app.listen(5001, () => {
+  console.log("Comments service listening on port", 5001);
 });
