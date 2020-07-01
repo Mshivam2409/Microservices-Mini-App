@@ -14,6 +14,17 @@ interface comment {
 
 var commentsByPostId: { [PostId: string]: Array<comment> } = {};
 
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
+
+  next();
+});
+
 app.get("/post/:id/comments", (req, res, next) => {
   res.status(200).json(commentsByPostId[req.params.id]);
 });
@@ -21,11 +32,19 @@ app.get("/post/:id/comments", (req, res, next) => {
 app.post("/post/:id/comments", (req, res, next) => {
   const postID: string = req.params.id;
   const commentID = randomBytes(16).toString("hex");
-  let newComment: comment;
-  newComment.content = req.body.content;
-  newComment.id = commentID;
-  commentsByPostId[postID].push(newComment);
-  res.status(200).json(commentsByPostId[req.params.id]);
+  var newComment = {
+    id: commentID,
+    content: req.body.content,
+  };
+  console.log(req.body.content);
+  if (commentsByPostId[postID]) {
+    commentsByPostId[postID].push(newComment);
+    res.status(200).json(commentsByPostId[req.params.id]);
+  } else {
+    commentsByPostId[postID] = [];
+    commentsByPostId[postID].push(newComment);
+    res.status(200).json(commentsByPostId[req.params.id]);
+  }
 });
 
 app.listen(5001, () => {
